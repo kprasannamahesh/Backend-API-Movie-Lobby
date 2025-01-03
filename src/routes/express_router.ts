@@ -58,8 +58,12 @@ router.get('/search',async(req:Request,res:Response) => {
             return;
         }
         const filter: any = {};
-        if (title) filter.title = { $regex: title, $options: 'i' };
-        if (genre) filter.genre = { $regex: genre, $options: 'i' };
+        if (title || genre) {
+          filter.$or = [];
+          if (title) filter.$or.push({ title: { $regex: title, $options: 'i' } });
+          if (genre) filter.$or.push({ genre: { $regex: genre, $options: 'i' } });
+        }
+
         const moviesCollection = db.collection('movies');
         const movies = await moviesCollection.find(filter).toArray();
         if(!movies){
@@ -82,6 +86,7 @@ router.post('/movies', adminAuth, async (req: Request, res: Response):Promise<vo
       }
   
       const moviesCollection = db.collection('movies');
+      
       const newMovie = { title, genre, rating, streaming_link };
   
       await moviesCollection.insertOne(newMovie);
